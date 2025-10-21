@@ -9,7 +9,7 @@ test.describe('ETRAINING Environment - Certification Dropdown Validation', () =>
     await page.fill('input[placeholder="Last name"]', 'User');
     await page.fill('input[placeholder="Email address"]', 'test@example.com');
     await page.fill('input[placeholder="Phone number"]', '0412345678');
-    await page.fill('input[placeholder="Password"]', 'TestPass123!');
+    await page.fill('input[type="password"]', 'TestPass123!'); // ETRAINING uses type="password" not placeholder
     await page.click('button:has-text("Continue")');
     
     // Wait for step 2 to load
@@ -19,11 +19,10 @@ test.describe('ETRAINING Environment - Certification Dropdown Validation', () =>
     await page.click('div[class*="cursor-pointer"]:has-text("Select your Qualification...")');
     await page.waitForSelector('div[class*="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-light-grey rounded-2xl shadow-2xl z-10"]');
     
-    // ETRAINING Environment - Expected certification values (ADD YOUR 2 VALUES HERE)
+    // ETRAINING Environment - Expected certification values
     const expectedCertifications = [
-      // TODO: Add your 2 ETRAINING certification values here
-      'TRAIN001 - Example Training Certification 1',
-      'TRAIN002 - Example Training Certification 2'
+      'Certificate IV in Building and Construction',
+      'CPC30220- Certificate III in Carpentry'
     ];
     
     console.log('ETRAINING Environment - Verifying certification dropdown values...');

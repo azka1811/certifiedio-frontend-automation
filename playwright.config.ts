@@ -24,14 +24,17 @@ export default defineConfig({
   projects: [
     {
       name: 'demo',
+      testMatch: /demo-certifications\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: DEMO_URL },
     },
     {
       name: 'ebc',
+      testMatch: /ebc-certifications\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: EBC_URL },
     },
     {
       name: 'etraining',
+      testMatch: /etraining.*\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: ETRAINING_URL },
     },
   ],
