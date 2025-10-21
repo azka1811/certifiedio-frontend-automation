@@ -1,0 +1,30 @@
+{
+  "name": "certifiedio-frontend-automation",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:dev": "playwright test --project=dev",
+    "test:staging": "playwright test --project=staging",
+    "test:prod": "playwright test --project=prod",
+    "test:ui": "playwright test --ui",
+    "test:ui:staging": "playwright test --ui --project=staging",
+    "test:certifications": "playwright test --grep \"certification dropdown\"",
+    "test:certifications:ui": "playwright test --ui --grep \"certification dropdown\"",
+    "report:open": "playwright show-report report/html",
+    "report:email": "node scripts/send-report.js",
+    "posttest": "echo Done"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.56.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "fs": "^0.0.1-security",
+    "nodemailer": "^7.0.9"
+  }
+}
