@@ -2,9 +2,9 @@ import { defineConfig, devices } from '@playwright/test';
 // Load .env if present without making it a hard dependency
 try { require('dotenv').config(); } catch {}
 
-const DEV_URL = process.env.DEV_URL || 'https://demo.certified.io';
-const STAGING_URL = process.env.STAGING_URL || 'https://demo.certified.io';
-const PROD_URL = process.env.PROD_URL || 'https://demo.certified.io';
+const DEMO_URL = process.env.DEMO_URL || 'https://demo.certified.io';
+const EBC_URL = process.env.EBC_URL || 'https://ebc.certified.io';
+const ETRAINING_URL = process.env.ETRAINING_URL || 'https://etraining.certified.io';
 
 export default defineConfig({
   testDir: './tests',
@@ -18,32 +18,25 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    baseURL: DEV_URL,
+    baseURL: DEMO_URL,
     testIdAttribute: 'data-testid',
   },
   projects: [
-    // Run first to create storage state
     {
-      name: 'setup',
-      testMatch: /auth\.setup\.spec\.ts/,
+      name: 'demo',
+      use: { ...devices['Desktop Chrome'], baseURL: DEMO_URL },
     },
     {
-      name: 'dev',
-      use: { ...devices['Desktop Chrome'], baseURL: DEV_URL, storageState: 'report/storageState.json' },
-      dependencies: ['setup'],
+      name: 'ebc',
+      use: { ...devices['Desktop Chrome'], baseURL: EBC_URL },
     },
     {
-      name: 'staging',
-      use: { ...devices['Desktop Chrome'], baseURL: STAGING_URL, storageState: 'report/storageState.json' },
-      dependencies: ['setup'],
-    },
-    {
-      name: 'prod',
-      use: { ...devices['Desktop Chrome'], baseURL: PROD_URL, storageState: 'report/storageState.json' },
-      dependencies: ['setup'],
+      name: 'etraining',
+      use: { ...devices['Desktop Chrome'], baseURL: ETRAINING_URL },
     },
   ],
 });
+
 
 
 
