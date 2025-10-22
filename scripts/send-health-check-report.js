@@ -20,8 +20,8 @@ function buildEnvironmentSummary(envName, json) {
       status: '❌ FAILED',
       details: 'No test results found',
       passed: 0,
-      failed: 0,
-      total: 0
+      failed: 1, // Count as 1 failure when no results found
+      total: 1
     };
   }
 
