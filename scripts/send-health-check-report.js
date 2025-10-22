@@ -41,9 +41,10 @@ function buildEnvironmentSummary(envName, json) {
 
 function buildHealthCheckReport() {
   const {
-    DEMO_URL = 'https://demo.certified.io',
-    EBC_URL = 'https://ebc.certified.io',
-    ETRAINING_URL = 'https://etraining.certified.io',
+    
+    DEMO_URL="https://demo.certified.io",
+    EBC_URL="https://ebc45818.certified.io",
+    ETRAINING_URL="https://etraining45512.certified.io",
   } = process.env;
   const environments = [
     { name: 'DEMO', file: 'report/demo-results.json' },
@@ -64,7 +65,7 @@ function buildHealthCheckReport() {
   const totalTests = totalPassed + totalFailed;
   const overallStatus = totalFailed === 0 ? '✅ ALL SYSTEMS HEALTHY' : '❌ ISSUES DETECTED';
 
-  const subject = `Certification Health Check - ${overallStatus} (${totalPassed}/${totalTests} tests passed)`;
+  const subject = `Certification Health Check (Frontend) - ${overallStatus} (${totalPassed}/${totalTests} tests passed)`;
   
   const html = `
     <h2>🔍 Daily Certification Health Check Report</h2>
