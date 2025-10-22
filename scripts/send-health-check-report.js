@@ -40,6 +40,11 @@ function buildEnvironmentSummary(envName, json) {
 }
 
 function buildHealthCheckReport() {
+  const {
+    DEMO_URL = 'https://demo.certified.io',
+    EBC_URL = 'https://ebc.certified.io',
+    ETRAINING_URL = 'https://etraining.certified.io',
+  } = process.env;
   const environments = [
     { name: 'DEMO', file: 'report/demo-results.json' },
     { name: 'EBC', file: 'report/ebc-results.json' },
@@ -80,7 +85,7 @@ function buildHealthCheckReport() {
           <td><strong>${r.name}</strong></td>
           <td>${r.status}</td>
           <td>${r.details}</td>
-          <td>${r.name === 'DEMO' ? 'demo.certified.io' : r.name === 'EBC' ? 'ebc.certified.io' : 'etraining.certified.io'}</td>
+          <td>${r.name === 'DEMO' ? DEMO_URL : r.name === 'EBC' ? EBC_URL : ETRAINING_URL}</td>
         </tr>
       `).join('')}
     </table>
