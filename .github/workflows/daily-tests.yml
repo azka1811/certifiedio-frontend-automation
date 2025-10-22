@@ -30,19 +30,19 @@ jobs:
         env:
           DEMO_URL: ${{ vars.DEMO_URL || 'https://demo.certified.io' }}
         run: |
-          npx playwright test --project=demo --reporter=list --reporter=json --reporter-options outputFile=report/demo-results.json
+          npx playwright test --project=demo --reporter=list --reporter=json --output-dir=report
 
       - name: Run EBC Environment Tests
         env:
           EBC_URL: ${{ vars.EBC_URL || 'https://ebc45818.certified.io' }}
         run: |
-          npx playwright test --project=ebc --reporter=list --reporter=json --reporter-options outputFile=report/ebc-results.json
+          npx playwright test --project=ebc --reporter=list --reporter=json --output-dir=report
 
       - name: Run ETRAINING Environment Tests
         env:
           ETRAINING_URL: ${{ vars.ETRAINING_URL || 'https://etraining45512.certified.io' }}
         run: |
-          npx playwright test --project=etraining --reporter=list --reporter=json --reporter-options outputFile=report/etraining-results.json
+          npx playwright test --project=etraining --reporter=list --reporter=json --output-dir=report
 
       - name: Generate Combined Report
         run: |
