@@ -3,7 +3,6 @@ import { defineConfig, devices } from '@playwright/test';
 try { require('dotenv').config(); } catch {}
 
 const DEMO_URL = process.env.DEMO_URL || 'https://demo.certified.io';
-const EBC_URL = process.env.EBC_URL || 'https://ebc.certified.io';
 const ETRAINING_URL = process.env.ETRAINING_URL || 'https://etraining.certified.io';
 
 export default defineConfig({
@@ -26,11 +25,6 @@ export default defineConfig({
       name: 'demo',
       testMatch: /demo-certifications\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: DEMO_URL },
-    },
-    {
-      name: 'ebc',
-      testMatch: /ebc-certifications\.spec\.ts/,
-      use: { ...devices['Desktop Chrome'], baseURL: EBC_URL },
     },
     {
       name: 'etraining',

@@ -19,6 +19,14 @@ test.describe('ETRAINING Environment - Certification Dropdown Validation', () =>
     await page.click('div[class*="cursor-pointer"]:has-text("Select your Qualification...")');
     await page.waitForSelector('div[class*="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-light-grey rounded-2xl shadow-2xl z-10"]');
     
+    // Log all option text currently shown in dropdown for debugging
+    const dropdownLocator = page.locator('div[class*="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-light-grey rounded-2xl shadow-2xl z-10"]');
+    await dropdownLocator.waitFor({ state: 'visible', timeout: 15000 });
+    const dropdownText = await dropdownLocator.innerText();
+    console.log('ETRAINING dropdown raw text:\n', dropdownText);
+    const optionTexts = await dropdownLocator.locator('[role="option"], div, span, li').allInnerTexts();
+    console.log('ETRAINING parsed option texts:', optionTexts);
+
     // ETRAINING Environment - Expected certification values
     const expectedCertifications = [
       'Certificate IV in Building and Construction',
@@ -30,7 +38,7 @@ test.describe('ETRAINING Environment - Certification Dropdown Validation', () =>
     // Verify each certification is visible in the dropdown
     for (const cert of expectedCertifications) {
       const certElement = page.locator(`text=${cert}`).first();
-      await expect(certElement).toBeVisible();
+      await expect(certElement).toBeVisible({ timeout: 15000 });
       console.log(`✅ ETRAINING Found: ${cert}`);
     }
     

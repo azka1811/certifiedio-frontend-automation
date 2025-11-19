@@ -41,15 +41,12 @@ function buildEnvironmentSummary(envName, json) {
 
 function buildHealthCheckReport() {
   const {
-    
-    DEMO_URL="https://demo.certified.io",
-    EBC_URL="https://ebc45818.certified.io",
-    ETRAINING_URL="https://etraining45512.certified.io",
+    DEMO_URL = "https://demo.certified.io",
+    ETRAINING_URL = "https://etraining45512.certified.io",
   } = process.env;
   const environments = [
-    { name: 'DEMO', file: 'report/demo-results.json' },
-    { name: 'EBC', file: 'report/ebc-results.json' },
-    { name: 'ETRAINING', file: 'report/etraining-results.json' }
+    { name: 'DEMO', file: 'report/demo-results.json', url: DEMO_URL, details: 'Validates 4 certification options in dropdown' },
+    { name: 'ETRAINING', file: 'report/etraining-results.json', url: ETRAINING_URL, details: 'Validates 2 certification options in dropdown' }
   ];
 
   const results = environments.map(env => {
@@ -86,7 +83,7 @@ function buildHealthCheckReport() {
           <td><strong>${r.name}</strong></td>
           <td>${r.status}</td>
           <td>${r.details}</td>
-          <td>${r.name === 'DEMO' ? DEMO_URL : r.name === 'EBC' ? EBC_URL : ETRAINING_URL}</td>
+          <td>${r.url}</td>
         </tr>
       `).join('')}
     </table>
@@ -94,7 +91,6 @@ function buildHealthCheckReport() {
     <h3>Certification Validation Details:</h3>
     <ul>
       <li><strong>DEMO:</strong> Validates 4 certification options in dropdown</li>
-      <li><strong>EBC:</strong> Validates 12 certification options in dropdown (with scrolling)</li>
       <li><strong>ETRAINING:</strong> Validates 2 certification options in dropdown</li>
     </ul>
     

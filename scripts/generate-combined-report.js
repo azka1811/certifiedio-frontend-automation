@@ -16,7 +16,6 @@ function readJsonReport(filePath) {
 function generateCombinedReport() {
   const environments = [
     { name: 'DEMO', file: 'report/demo-results.json' },
-    { name: 'EBC', file: 'report/ebc-results.json' },
     { name: 'ETRAINING', file: 'report/etraining-results.json' }
   ];
 
@@ -97,9 +96,9 @@ function generateCombinedReport() {
       <div class="environment ${envData.status.toLowerCase()}">
         <h2>${envName} Environment - ${envData.status}</h2>
         <p><strong>Tests:</strong> ${envData.passed}/${envData.total} passed</p>
-        <p><strong>URL:</strong> ${envName === 'DEMO' ? 'demo.certified.io' : envName === 'EBC' ? 'ebc.certified.io' : 'etraining.certified.io'}</p>
+        <p><strong>URL:</strong> ${envName === 'DEMO' ? 'demo.certified.io' : 'etraining.certified.io'}</p>
         <p><strong>Certifications Validated:</strong> 
-          ${envName === 'DEMO' ? '4 certifications' : envName === 'EBC' ? '12 certifications' : '2 certifications'}
+          ${envName === 'DEMO' ? '4 certifications' : '2 certifications'}
         </p>
       </div>
     `).join('')}
