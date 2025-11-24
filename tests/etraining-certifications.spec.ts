@@ -29,8 +29,10 @@ test.describe('ETRAINING Environment - Certification Dropdown Validation', () =>
 
     // ETRAINING Environment - Expected certification values
     const expectedCertifications = [
-      'Certificate IV in Building and Construction',
-      'CPC30220- Certificate III in Carpentry'
+      'CPC40120 Certificate IV in Building and Construction',
+      'Certificate in Building and Construction',
+      'CPC30220 Certificate III in Carpentry',
+      'Certificate III in Carpentry',
     ];
     
     console.log('ETRAINING Environment - Verifying certification dropdown values...');
