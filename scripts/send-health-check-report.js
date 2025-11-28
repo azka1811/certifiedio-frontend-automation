@@ -41,7 +41,6 @@ function buildEnvironmentSummary(envName, json) {
 function buildHealthCheckReport() {
   const {
     DEMO_URL = 'https://demo.certified.io',
-    EBC_URL = 'https://ebc.certified.io',
     ETRAINING_URL = 'https://etraining45512.certified.io',
   } = process.env;
 
@@ -54,18 +53,11 @@ function buildHealthCheckReport() {
       details: 'Validates 4 certification options in dropdown',
     },
     {
-      name: 'EBC',
-      file: 'report/ebc-results.json',
-      summaryFile: 'report/ebc-summary.json',
-      url: EBC_URL,
-      details: 'Validates 12 certification options in dropdown (with scrolling)',
-    },
-    {
       name: 'ETRAINING',
       file: 'report/etraining-results.json',
       summaryFile: 'report/etraining-summary.json',
       url: ETRAINING_URL,
-      details: 'Validates 4 certification options in dropdown',
+      details: 'Validates 3 certification cards (with subtitles)',
     },
   ];
 
@@ -100,7 +92,6 @@ function buildHealthCheckReport() {
         <th>Details</th>
         <th>URL</th>
         <th>Missing Certifications</th>
-        <th>Logo</th>
       </tr>
       ${results
         .map(
@@ -111,15 +102,6 @@ function buildHealthCheckReport() {
           <td>${r.details}</td>
           <td>${r.url}</td>
           <td>${r.summary?.missingCertifications?.length ? r.summary.missingCertifications.join(', ') : 'None'}</td>
-          <td>
-            ${
-              r.summary?.logo
-                ? `${r.summary.logo.matched ? '✅ Matched' : '❌ Mismatch'}<br/><small>Expected: ${
-                    r.summary.logo.expected || 'N/A'
-                  }<br/>Actual: ${r.summary.logo.actual || 'N/A'}</small>`
-                : 'Not Checked'
-            }
-          </td>
         </tr>
       `
         )

@@ -15,9 +15,18 @@ function readJsonReport(filePath) {
 
 function generateCombinedReport() {
   const environments = [
-    { name: 'DEMO', file: 'report/demo-results.json', summaryFile: 'report/demo-summary.json', url: process.env.DEMO_URL || 'https://demo.certified.io' },
-    { name: 'EBC', file: 'report/ebc-results.json', summaryFile: 'report/ebc-summary.json', url: process.env.EBC_URL || 'https://ebc.certified.io' },
-    { name: 'ETRAINING', file: 'report/etraining-results.json', summaryFile: 'report/etraining-summary.json', url: process.env.ETRAINING_URL || 'https://etraining45512.certified.io' }
+    {
+      name: 'DEMO',
+      file: 'report/demo-results.json',
+      summaryFile: 'report/demo-summary.json',
+      url: process.env.DEMO_URL || 'https://demo.certified.io',
+    },
+    {
+      name: 'ETRAINING',
+      file: 'report/etraining-results.json',
+      summaryFile: 'report/etraining-summary.json',
+      url: process.env.ETRAINING_URL || 'https://etraining45512.certified.io',
+    },
   ];
 
   const combinedResults = {
@@ -104,8 +113,11 @@ function generateCombinedReport() {
         <p><strong>Tests:</strong> ${envData.passed}/${envData.total} passed</p>
         <p><strong>URL:</strong> ${envData.url}</p>
         <p><strong>Expected Certifications:</strong> ${envData.summary?.expectedCertifications?.length || 0}</p>
-        <p><strong>Missing Certifications:</strong> ${envData.summary?.missingCertifications?.length ? envData.summary.missingCertifications.join(', ') : 'None'}</p>
-        <p><strong>Logo:</strong> ${envData.summary?.logo ? `${envData.summary.logo.matched ? '✅' : '❌'} Expected ${envData.summary.logo.expected || 'N/A'}, Actual ${envData.summary.logo.actual || 'N/A'}` : 'N/A'}</p>
+        <p><strong>Missing Certifications:</strong> ${
+          envData.summary?.missingCertifications?.length
+            ? envData.summary.missingCertifications.join(', ')
+            : 'None'
+        }</p>
       </div>
     `).join('')}
 
