@@ -5,14 +5,12 @@
   "scripts": {
     "test": "playwright test",
     "test:demo": "playwright test --project=demo",
-    "test:ebc": "playwright test --project=ebc",
     "test:etraining": "playwright test --project=etraining",
-    "test:all": "playwright test",
+    "test:all": "playwright test --project=demo --reporter=list,json && copy report\\results.json report\\demo-results.json && playwright test --project=etraining --reporter=list,json && copy report\\results.json report\\etraining-results.json",
     "test:demo:ui": "playwright test --project=demo --ui",
-    "test:ebc:ui": "playwright test --project=ebc --ui",
     "test:etraining:ui": "playwright test --project=etraining --ui",
     "report:open": "playwright show-report report/html",
-    "report:email": "node scripts/send-report.js"
+    "report:email": "node scripts/send-health-check-report.js"
   },
   "keywords": [],
   "author": "",
