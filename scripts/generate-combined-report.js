@@ -15,8 +15,9 @@ function readJsonReport(filePath) {
 
 function generateCombinedReport() {
   const environments = [
-    { name: 'DEMO', file: 'report/demo-results.json' },
-    { name: 'ETRAINING', file: 'report/etraining-results.json' }
+    { name: 'DEMO', file: 'report/demo-results.json', summaryFile: 'report/demo-summary.json', url: process.env.DEMO_URL || 'https://demo.certified.io' },
+    { name: 'EBC', file: 'report/ebc-results.json', summaryFile: 'report/ebc-summary.json', url: process.env.EBC_URL || 'https://ebc.certified.io' },
+    { name: 'ETRAINING', file: 'report/etraining-results.json', summaryFile: 'report/etraining-summary.json', url: process.env.ETRAINING_URL || 'https://etraining45512.certified.io' }
   ];
 
   const combinedResults = {
@@ -31,6 +32,7 @@ function generateCombinedReport() {
 
   environments.forEach(env => {
     const json = readJsonReport(env.file);
+    const summaryData = readJsonReport(env.summaryFile) || {};
     if (json) {
       const stats = json.stats || {};
       const passed = stats.expected || 0;
@@ -42,7 +44,9 @@ function generateCombinedReport() {
         passed,
         failed,
         total,
-        tests: json.suites || []
+        tests: json.suites || [],
+        summary: summaryData,
+        url: env.url
       };
 
       combinedResults.summary.totalTests += total;
@@ -54,7 +58,9 @@ function generateCombinedReport() {
         passed: 0,
         failed: 0,
         total: 0,
-        tests: []
+        tests: [],
+        summary: summaryData,
+        url: env.url
       };
     }
   });
@@ -96,10 +102,10 @@ function generateCombinedReport() {
       <div class="environment ${envData.status.toLowerCase()}">
         <h2>${envName} Environment - ${envData.status}</h2>
         <p><strong>Tests:</strong> ${envData.passed}/${envData.total} passed</p>
-        <p><strong>URL:</strong> ${envName === 'DEMO' ? 'demo.certified.io' : 'etraining.certified.io'}</p>
-        <p><strong>Certifications Validated:</strong> 
-          ${envName === 'DEMO' ? '4 certifications' : '2 certifications'}
-        </p>
+        <p><strong>URL:</strong> ${envData.url}</p>
+        <p><strong>Expected Certifications:</strong> ${envData.summary?.expectedCertifications?.length || 0}</p>
+        <p><strong>Missing Certifications:</strong> ${envData.summary?.missingCertifications?.length ? envData.summary.missingCertifications.join(', ') : 'None'}</p>
+        <p><strong>Logo:</strong> ${envData.summary?.logo ? `${envData.summary.logo.matched ? '✅' : '❌'} Expected ${envData.summary.logo.expected || 'N/A'}, Actual ${envData.summary.logo.actual || 'N/A'}` : 'N/A'}</p>
       </div>
     `).join('')}
 

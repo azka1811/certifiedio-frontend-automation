@@ -1,5 +1,4 @@
 const fs = require('fs');
-const path = require('path');
 const nodemailer = require('nodemailer');
 
 function readJsonReport(filePath) {
@@ -20,8 +19,8 @@ function buildEnvironmentSummary(envName, json) {
       status: '❌ FAILED',
       details: 'No test results found',
       passed: 0,
-      failed: 1, // Count as 1 failure when no results found
-      total: 1
+      failed: 1,
+      total: 1,
     };
   }
 
@@ -35,25 +34,48 @@ function buildEnvironmentSummary(envName, json) {
     details: `${passed}/${total} tests passed`,
     passed,
     failed,
-    total
+    total,
   };
 }
 
 function buildHealthCheckReport() {
   const {
-    DEMO_URL = "https://demo.certified.io",
-    ETRAINING_URL = "https://etraining45512.certified.io",
+    DEMO_URL = 'https://demo.certified.io',
+    EBC_URL = 'https://ebc.certified.io',
+    ETRAINING_URL = 'https://etraining45512.certified.io',
   } = process.env;
+
   const environments = [
-    { name: 'DEMO', file: 'report/demo-results.json', url: DEMO_URL, details: 'Validates 4 certification options in dropdown' },
-    { name: 'ETRAINING', file: 'report/etraining-results.json', url: ETRAINING_URL, details: 'Validates 2 certification options in dropdown' }
+    {
+      name: 'DEMO',
+      file: 'report/demo-results.json',
+      summaryFile: 'report/demo-summary.json',
+      url: DEMO_URL,
+      details: 'Validates 4 certification options in dropdown',
+    },
+    {
+      name: 'EBC',
+      file: 'report/ebc-results.json',
+      summaryFile: 'report/ebc-summary.json',
+      url: EBC_URL,
+      details: 'Validates 12 certification options in dropdown (with scrolling)',
+    },
+    {
+      name: 'ETRAINING',
+      file: 'report/etraining-results.json',
+      summaryFile: 'report/etraining-summary.json',
+      url: ETRAINING_URL,
+      details: 'Validates 4 certification options in dropdown',
+    },
   ];
 
-  const results = environments.map(env => {
+  const results = environments.map((env) => {
     const json = readJsonReport(env.file);
+    const summary = readJsonReport(env.summaryFile) || {};
     return {
       ...env,
-      ...buildEnvironmentSummary(env.name, json)
+      ...buildEnvironmentSummary(env.name, json),
+      summary,
     };
   });
 
@@ -63,7 +85,7 @@ function buildHealthCheckReport() {
   const overallStatus = totalFailed === 0 ? '✅ ALL SYSTEMS HEALTHY' : '❌ ISSUES DETECTED';
 
   const subject = `Certification Health Check (Frontend) - ${overallStatus} (${totalPassed}/${totalTests} tests passed)`;
-  
+
   const html = `
     <h2>🔍 Daily Certification Health Check Report</h2>
     <p><strong>Overall Status:</strong> ${overallStatus}</p>
@@ -77,21 +99,52 @@ function buildHealthCheckReport() {
         <th>Status</th>
         <th>Details</th>
         <th>URL</th>
+        <th>Missing Certifications</th>
+        <th>Logo</th>
       </tr>
-      ${results.map(r => `
+      ${results
+        .map(
+          (r) => `
         <tr>
           <td><strong>${r.name}</strong></td>
           <td>${r.status}</td>
           <td>${r.details}</td>
           <td>${r.url}</td>
+          <td>${r.summary?.missingCertifications?.length ? r.summary.missingCertifications.join(', ') : 'None'}</td>
+          <td>
+            ${
+              r.summary?.logo
+                ? `${r.summary.logo.matched ? '✅ Matched' : '❌ Mismatch'}<br/><small>Expected: ${
+                    r.summary.logo.expected || 'N/A'
+                  }<br/>Actual: ${r.summary.logo.actual || 'N/A'}</small>`
+                : 'Not Checked'
+            }
+          </td>
         </tr>
-      `).join('')}
+      `
+        )
+        .join('')}
     </table>
     
     <h3>Certification Validation Details:</h3>
     <ul>
-      <li><strong>DEMO:</strong> Validates 4 certification options in dropdown</li>
-      <li><strong>ETRAINING:</strong> Validates 2 certification options in dropdown</li>
+      ${results
+        .map(
+          (r) => `
+        <li>
+          <strong>${r.name}:</strong> ${r.details}.<br/>
+          Expected: ${r.summary?.expectedCertifications?.length || 0} |
+          Detected: ${r.summary?.actualCertifications?.length || 0} |
+          Missing: ${r.summary?.missingCertifications?.length || 0}<br/>
+          ${
+            r.summary?.missingCertifications?.length
+              ? `<em>Missing certifications:</em> ${r.summary.missingCertifications.join(', ')}`
+              : '<em>No missing certifications detected.</em>'
+          }
+        </li>
+      `
+        )
+        .join('')}
     </ul>
     
     <p><em>This is an automated health check report. If any environment shows ❌ FAILED, please investigate the certification dropdown functionality.</em></p>
@@ -101,14 +154,7 @@ function buildHealthCheckReport() {
 }
 
 async function main() {
-  const {
-    SMTP_HOST,
-    SMTP_PORT = '587',
-    SMTP_USER,
-    SMTP_PASS,
-    MAIL_FROM,
-    MAIL_TO,
-  } = process.env;
+  const { SMTP_HOST, SMTP_PORT = '587', SMTP_USER, SMTP_PASS, MAIL_FROM, MAIL_TO } = process.env;
 
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS || !MAIL_FROM || !MAIL_TO) {
     console.error('Missing SMTP or mail env vars.');
@@ -126,14 +172,14 @@ async function main() {
 
   const mailOptions = {
     from: MAIL_FROM,
-    to: MAIL_TO.split(',').map(s => s.trim()),
+    to: MAIL_TO.split(',').map((s) => s.trim()),
     subject: report.subject,
     html: report.html,
   };
 
   await transporter.sendMail(mailOptions);
   console.log('Health check report email sent');
-  console.log('Summary:', report.results.map(r => `${r.name}: ${r.status}`).join(', '));
+  console.log('Summary:', report.results.map((r) => `${r.name}: ${r.status}`).join(', '));
 }
 
 main().catch((e) => {
