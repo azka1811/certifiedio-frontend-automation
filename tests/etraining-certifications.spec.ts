@@ -35,6 +35,7 @@ test.describe('ETRAINING Environment - Certification Dropdown Validation', () =>
     };
     const summaryPath = path.resolve('report', 'etraining-summary.json');
 
+    // Allow for slow env; give navigation up to 120s
     page.setDefaultNavigationTimeout(120000);
     await page.goto('/new', { waitUntil: 'domcontentloaded', timeout: 120000 });
 
@@ -56,6 +57,17 @@ test.describe('ETRAINING Environment - Certification Dropdown Validation', () =>
       await dropdown.waitFor();
 
       console.log('ETRAINING Environment - Verifying certification dropdown values...');
+
+      // Wait for at least one certification card to appear in dropdown
+      const titleLocator = dropdown.locator('h3').first();
+      await titleLocator
+        .waitFor({ timeout: 30000 })
+        .catch(() => {
+          throw new Error(
+            'ETRAINING certifications did not load: no <h3> titles found in dropdown within 30s. ' +
+            'Check backend/API or UI for errors.'
+          );
+        });
 
       // Capture actual certification titles (h3)
       const titleTexts = await dropdown.locator('h3').allTextContents();
