@@ -25,11 +25,13 @@ export default defineConfig({
       name: 'demo',
       testMatch: /demo-certifications\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: DEMO_URL },
+      timeout: 300000, // 5 minutes default timeout
     },
     {
       name: 'etraining',
       testMatch: /etraining.*\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: ETRAINING_URL },
+      timeout: 300000, // 5 minutes default timeout
     },
   ],
 });

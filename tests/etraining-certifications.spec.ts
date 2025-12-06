@@ -22,8 +22,8 @@ const DROPDOWN_SELECTOR =
 
 test.describe('ETRAINING Environment - Certification Dropdown Validation', () => {
   test('verify ETRAINING certification dropdown shows all expected values', async ({ page }) => {
-    // This env can be very slow to return certifications – allow up to 3 minutes for the test
-    test.setTimeout(180000);
+    // Very flexible timeout - allow up to 5 minutes for slow environments
+    test.setTimeout(300000);
     const summary = {
       environment: 'ETRAINING',
       status: 'pending',
@@ -37,47 +37,113 @@ test.describe('ETRAINING Environment - Certification Dropdown Validation', () =>
     };
     const summaryPath = path.resolve('report', 'etraining-summary.json');
 
-    // Allow for slow env; give navigation up to 120s
-    page.setDefaultNavigationTimeout(120000);
-    await page.goto('/new', { waitUntil: 'domcontentloaded', timeout: 120000 });
+    // Set very flexible timeouts for all operations
+    page.setDefaultNavigationTimeout(180000); // 3 minutes for navigation
+    page.setDefaultTimeout(60000); // 1 minute for other operations
+
+    // Navigate - use domcontentloaded instead of networkidle (more reliable)
+    console.log('ETRAINING: Navigating to registration page...');
+    await page.goto('/new', { waitUntil: 'domcontentloaded', timeout: 180000 });
+    
+    // Wait for page to be interactive (don't wait for networkidle - it may never happen)
+    await page.waitForLoadState('domcontentloaded');
 
     try {
-      // Fill personal info to get to step 2
-      await page.fill('input[placeholder="First name"]', 'Test');
-      await page.fill('input[placeholder="Last name"]', 'User');
-      await page.fill('input[placeholder="Email address"]', 'test@example.com');
-      await page.fill('input[placeholder="Phone number"]', '0412345678');
-      await page.fill('input[type="password"]', 'TestPass123!');
-      await page.click('button:has-text("Continue")');
+      console.log('ETRAINING: Filling personal information...');
+      // Fill personal info to get to step 2 with retries
+      await page.fill('input[placeholder="First name"]', 'Test', { timeout: 60000 });
+      await page.fill('input[placeholder="Last name"]', 'User', { timeout: 60000 });
+      await page.fill('input[placeholder="Email address"]', 'test@example.com', { timeout: 60000 });
+      await page.fill('input[placeholder="Phone number"]', '0412345678', { timeout: 60000 });
+      await page.fill('input[type="password"]', 'TestPass123!', { timeout: 60000 });
+      
+      // Click continue and wait for navigation
+      console.log('ETRAINING: Clicking Continue button...');
+      await page.click('button:has-text("Continue")', { timeout: 60000 });
 
-      // Wait for step 2 to load
-      await page.waitForSelector('h1:has-text("Choose Your Path")');
+      // Wait for step 2 to load with very flexible timeout
+      console.log('ETRAINING: Waiting for step 2 to load...');
+      await page.waitForSelector('h1:has-text("Choose Your Path")', { 
+        state: 'visible', 
+        timeout: 180000 
+      });
+
+      // Give a moment for the page to settle (don't wait for networkidle - unreliable)
+      await page.waitForTimeout(2000);
 
       // Open certification dropdown
-      await page.click('div[class*="cursor-pointer"]:has-text("Select your Qualification...")');
+      console.log('ETRAINING: Opening certification dropdown...');
+      await page.click('div[class*="cursor-pointer"]:has-text("Select your Qualification...")', { 
+        timeout: 60000 
+      });
+      
       const dropdown = page.locator(DROPDOWN_SELECTOR);
-      await dropdown.waitFor();
+      
+      // Wait for dropdown to appear
+      await dropdown.waitFor({ state: 'visible', timeout: 60000 });
 
       console.log('ETRAINING Environment - Verifying certification dropdown values...');
 
-      // Wait for at least one certification card to appear in dropdown
-      const titleLocator = dropdown.locator('h3').first();
-      await titleLocator
-        .waitFor({ timeout: 120000 })
-        .catch(() => {
-          throw new Error(
-            'ETRAINING certifications did not load: no <h3> titles found in dropdown within 120s. ' +
-            'Check backend/API or UI for errors (API may be taking too long to respond).'
-          );
-        });
+      // Wait for certifications to load using polling approach (more reliable than networkidle)
+      console.log('ETRAINING: Waiting for certifications to load...');
+      let certificationsLoaded = false;
+      const maxWaitTime = 180000; // 3 minutes max
+      const startTime = Date.now();
+      const pollInterval = 2000; // Check every 2 seconds
+      
+      while (!certificationsLoaded && (Date.now() - startTime) < maxWaitTime) {
+        const h3Elements = await dropdown.locator('h3').all();
+        const IGNORE_TEXTS = new Set(['Cancel', 'Back', 'Continue']);
+        const validTitles = [];
+        
+        for (const element of h3Elements) {
+          const text = await element.textContent();
+          if (text && text.trim() && !IGNORE_TEXTS.has(text.trim())) {
+            validTitles.push(text.trim());
+          }
+        }
+        
+        if (validTitles.length > 0) {
+          console.log(`ETRAINING: Found ${validTitles.length} certifications after ${Math.round((Date.now() - startTime) / 1000)}s`);
+          certificationsLoaded = true;
+        } else {
+          await page.waitForTimeout(pollInterval);
+        }
+      }
+      
+      if (!certificationsLoaded) {
+        throw new Error(
+          'ETRAINING certifications did not load: no valid <h3> titles found in dropdown within 180s. ' +
+          'Check backend/API or UI for errors (API may be taking too long to respond).'
+        );
+      }
 
-      // Capture actual certification titles (h3)
-      const titleTexts = await dropdown.locator('h3').allTextContents();
-      const IGNORE_TEXTS = new Set(['Cancel', 'Back', 'Continue']);
-      summary.actualCertifications = titleTexts
-        .map((text) => text.trim())
-        .filter(Boolean)
-        .filter((text) => !IGNORE_TEXTS.has(text));
+      // Give a moment for all certifications to fully render
+      await page.waitForTimeout(1000);
+
+      // Capture actual certification titles (h3) with retry logic
+      const collectCertifications = async (retries = 5) => {
+        for (let i = 0; i < retries; i++) {
+          const titleTexts = await dropdown.locator('h3').allTextContents();
+          const IGNORE_TEXTS = new Set(['Cancel', 'Back', 'Continue']);
+          const validTitles = titleTexts
+            .map((text) => text.trim())
+            .filter(Boolean)
+            .filter((text) => !IGNORE_TEXTS.has(text));
+          
+          if (validTitles.length > 0) {
+            summary.actualCertifications = validTitles;
+            return;
+          }
+          
+          if (i < retries - 1) {
+            console.log(`ETRAINING: Retrying certification collection (attempt ${i + 1}/${retries})...`);
+            await page.waitForTimeout(2000);
+          }
+        }
+      };
+
+      await collectCertifications();
 
       // Capture secondary/subtitle texts (commonly <p> tags)
       const subtitleCandidates = await dropdown.locator('p').allTextContents();
@@ -97,10 +163,22 @@ test.describe('ETRAINING Environment - Certification Dropdown Validation', () =>
           )
       );
 
-      // Verify each certification title/subtitle pair is visible in the dropdown
+      // Verify each certification title/subtitle pair is visible in the dropdown with retries
       for (const cert of ETRAINING_EXPECTED_CERTIFICATIONS) {
+        console.log(`ETRAINING: Checking for certification: ${cert.title}`);
         const titleLocator = dropdown.locator('h3', { hasText: cert.title }).first();
-        const titleCount = await titleLocator.count();
+        
+        // Wait for title with retries
+        let titleCount = 0;
+        for (let attempt = 0; attempt < 5; attempt++) {
+          titleCount = await titleLocator.count();
+          if (titleCount > 0) break;
+          if (attempt < 4) {
+            console.log(`ETRAINING: Retrying title check for ${cert.title} (attempt ${attempt + 1}/5)...`);
+            await page.waitForTimeout(2000);
+          }
+        }
+        
         if (titleCount === 0) {
           summary.missingCertifications.push(cert.title);
           await expect(
@@ -110,12 +188,22 @@ test.describe('ETRAINING Environment - Certification Dropdown Validation', () =>
             }`
           ).toHaveCount(1);
         } else {
-          await expect(titleLocator).toBeVisible();
+          await expect(titleLocator).toBeVisible({ timeout: 30000 });
           console.log(`✅ ETRAINING Found: ${cert.title}`);
         }
 
+        // Check subtitle with retries
         const subtitleLocator = dropdown.locator(`text=${cert.subtitle}`).first();
-        const subtitleVisible = await subtitleLocator.isVisible().catch(() => false);
+        let subtitleVisible = false;
+        for (let attempt = 0; attempt < 5; attempt++) {
+          subtitleVisible = await subtitleLocator.isVisible({ timeout: 30000 }).catch(() => false);
+          if (subtitleVisible) break;
+          if (attempt < 4) {
+            console.log(`ETRAINING: Retrying subtitle check for ${cert.subtitle} (attempt ${attempt + 1}/5)...`);
+            await page.waitForTimeout(2000);
+          }
+        }
+        
         if (!subtitleVisible) {
           summary.missingSubtitles.push(cert.subtitle);
           await expect(
@@ -131,10 +219,10 @@ test.describe('ETRAINING Environment - Certification Dropdown Validation', () =>
 
       // Test selecting ONE certification only
       console.log(`ETRAINING Testing selection of: ${summary.expectedCertifications[0]}`);
-      await page.click(`text=${summary.expectedCertifications[0]}`);
+      await page.click(`text=${summary.expectedCertifications[0]}`, { timeout: 60000 });
 
       // Just verify the dropdown closed
-      await dropdown.waitFor({ state: 'hidden' });
+      await dropdown.waitFor({ state: 'hidden', timeout: 30000 });
       console.log(`✅ ETRAINING Selected: ${summary.expectedCertifications[0]}`);
 
       // STOP HERE - NO MORE STEPS
@@ -147,6 +235,7 @@ test.describe('ETRAINING Environment - Certification Dropdown Validation', () =>
       summary.status = 'passed';
     } catch (error) {
       summary.status = 'failed';
+      console.error('ETRAINING Test failed:', error);
       throw error;
     } finally {
       fs.mkdirSync(path.dirname(summaryPath), { recursive: true });
